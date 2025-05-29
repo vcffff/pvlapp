@@ -22,6 +22,10 @@ class StepWidget extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final subStep = stepOne.subSteps[index];
                     Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(color: Colors.grey, width: 0.3),
+                      ),
                       padding: EdgeInsetsDirectional.symmetric(
                         horizontal: 6,
                         vertical: 4,
