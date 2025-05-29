@@ -17,7 +17,7 @@ class Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hello ',
+                  'Сәлем  Атын',
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 22,
@@ -26,11 +26,12 @@ class Header extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Let’s start learning',
+                  '''Сенің мамандығың  
+бойынша жаңалықтар''',
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 18,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],

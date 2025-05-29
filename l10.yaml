@@ -1,0 +1,3 @@
+arb-dir: lib/l10n   /// This is where our translation files are located at
+template-arb-file: app_en.arb       /// Sets the English template
+output-localization-file: app_localizations.dart

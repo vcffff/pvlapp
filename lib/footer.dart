@@ -12,7 +12,7 @@ class _FooterState extends State<Footer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
+      width: 440,
       decoration: BoxDecoration(
         image: DecorationImage(
           fit: BoxFit.cover,

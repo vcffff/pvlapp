@@ -173,7 +173,7 @@ class _LearningdState extends State<Learningd> {
                   lessons,
                   style: GoogleFonts.poppins(
                     fontSize: 15,
-                    color: Colors.grey.shade600,
+                    color: Colors.white,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
