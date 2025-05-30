@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hackatonparvlodar/roadmap/services/steps.dart';
 
 class StepWidget extends StatefulWidget {
-  final oneStep stepOne;
+  final String stepOne;
+  final String roadmap;
 
-  const StepWidget({super.key, required this.stepOne});
+  const StepWidget({super.key, required this.stepOne, required this.roadmap});
 
   @override
   State<StepWidget> createState() => _StepWidgetState();
@@ -28,107 +29,21 @@ class _StepWidgetState extends State<StepWidget> {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '• ${widget.stepOne.title!}',
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700),
-              ),
-              Container(
-                padding: EdgeInsets.only(left: 20, top: 7, bottom: 7, right: 7),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey, width: 1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: selectedValue,
-                    items:
-                        items.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        widget.stepOne.status = newValue!;
-                        selectedValue = newValue;
-                        print(widget.stepOne.status);
-                      });
-                    },
-                  ),
+              // Make text flexible and allow wrapping
+              Expanded(
+                child: Text(
+                  widget.roadmap,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  softWrap: true,
                 ),
               ),
+              SizedBox(width: 10),
+              Divider(color: Colors.black, thickness: 1),
             ],
           ),
         ),
-        widget.stepOne.subSteps.isNotEmpty
-            ? Container(
-              height: 200,
-              padding: EdgeInsets.symmetric(horizontal: 15),
-              child: ListView.builder(
-                itemCount: widget.stepOne.subSteps.length,
-                itemBuilder: (context, index) {
-                  final subStep = widget.stepOne.subSteps[index];
-                  return Container(
-                    decoration: BoxDecoration(
-                      color:
-                          widget.stepOne.subSteps[index].status
-                              ? Colors.grey
-                              : Colors.white,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: Colors.grey, width: 0.3),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                    margin: EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 30,
-                                child: Text(
-                                  '${index + 1}.',
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                              ),
-                              Text(
-                                '${subStep.title!}',
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              if (widget.stepOne.subSteps[index].status) {
-                                widget.stepOne.subSteps[index].status = false;
-                              } else if (!widget
-                                  .stepOne
-                                  .subSteps[index]
-                                  .status) {
-                                widget.stepOne.subSteps[index].status = true;
-                              }
-                            });
-                          },
-
-                          icon:
-                              widget.stepOne.subSteps[index].status
-                                  ? Icon(Icons.circle)
-                                  : Icon(Icons.circle_outlined),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            )
-            : SizedBox.shrink(),
       ],
     );
   }

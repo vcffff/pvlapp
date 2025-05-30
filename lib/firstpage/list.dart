@@ -111,7 +111,7 @@ class _ListdartState extends State<Listdart> {
       );
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+      padding: const EdgeInsets.only(top: 10, bottom: 10, left: 10),
       height: 220,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,

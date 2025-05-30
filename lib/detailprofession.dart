@@ -8,7 +8,6 @@ class DetailPage extends StatefulWidget {
   final String profession;
   final String imageUrl;
   final List<Map<String, dynamic>> courses;
-
   const DetailPage({
     super.key,
     required this.profession,
