@@ -12,7 +12,7 @@ class _FooterState extends State<Footer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
+      width: 440,
       decoration: BoxDecoration(
         image: DecorationImage(
           fit: BoxFit.cover,
@@ -36,7 +36,7 @@ class _FooterState extends State<Footer> {
               children: [
                 SizedBox(height: 40),
                 Text(
-                  'Meetup',
+                  'Кездесу',
                   style: GoogleFonts.poppins(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -45,7 +45,7 @@ class _FooterState extends State<Footer> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Off-line exchange of learning experience',
+                  'Оф-лайн режимінде оқу тәжірибесімен алмасу',
                   style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
                 ),
               ],
