@@ -182,7 +182,7 @@ class _LoginPageState extends State<LoginPage>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Жаңалықтар әлеміне қосылыңыз',
+                        'Карьера — свайппен басталатын дәуір',
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           color: Colors.white70,
@@ -279,27 +279,7 @@ class _LoginPageState extends State<LoginPage>
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Құпия сөзді қалпына келтіру әлі жүзеге асырылмады',
-                                ),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            'Құпия сөзді ұмыттыңыз ба?',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
+
                       if (_errorMessage != null)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16),
@@ -361,15 +341,6 @@ class _LoginPageState extends State<LoginPage>
             ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => MyWidget()),
-          );
-        },
-        child: Text('data'),
       ),
     );
   }

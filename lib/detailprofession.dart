@@ -1,8 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class DetailPage extends StatefulWidget {
   final String profession;
@@ -25,6 +26,7 @@ class _DetailPageState extends State<DetailPage>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  List<Map<String, dynamic>> videoControllers = [];
 
   @override
   void initState() {
@@ -42,23 +44,111 @@ class _DetailPageState extends State<DetailPage>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
     _controller.forward();
+
+    // Initialize YouTube player controllers
+    for (var course in widget.courses) {
+      final lessons = course['lessons'] as List<dynamic>? ?? [];
+      for (var lesson in lessons) {
+        final link = lesson['link'] as String? ?? '';
+        final videoId = YoutubePlayer.convertUrlToId(link) ?? '';
+        if (videoId.isNotEmpty) {
+          final controller = YoutubePlayerController(
+            initialVideoId: videoId,
+            flags: const YoutubePlayerFlags(
+              autoPlay: false,
+              mute: false,
+              enableCaption: true,
+              loop: false,
+            ),
+          );
+          videoControllers.add({
+            'controller': controller,
+            'lessonId': lesson['id'] as String? ?? '',
+            'courseId': course['id'] as String? ?? '',
+          });
+        }
+      }
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    for (var item in videoControllers) {
+      (item['controller'] as YoutubePlayerController).dispose();
+    }
     super.dispose();
   }
 
-  Future<void> _launchUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Не удалось открыть ссылку: $url'),
-          backgroundColor: Colors.red,
-        ),
-      );
+  Future<List<Map<String, dynamic>>?> fetchVideo({String? professionId}) async {
+    try {
+      final dio = Dio();
+      final url =
+          professionId != null
+              ? 'https://helpai-server.vercel.app/api/lessons?professionId=$professionId'
+              : 'https://helpai-server.vercel.app/api/lessons';
+      final response = await dio.get(url);
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is List<dynamic>) {
+          final Map<String, Map<String, dynamic>> courses = {};
+          for (var lesson in data) {
+            final course = lesson['course'] as Map<String, dynamic>?;
+            if (course == null) continue;
+
+            final courseId = course['_id'] as String? ?? '';
+            if (!courses.containsKey(courseId)) {
+              courses[courseId] = {
+                'id': courseId,
+                'title': course['title'] as String? ?? 'Без названия',
+                'description':
+                    course['description'] as String? ?? 'Описание недоступно',
+                'durability': course['durability'] as String? ?? 'Неизвестно',
+                'lessons': [],
+              };
+            }
+
+            final lessonData = {
+              'id': lesson['_id'] as String? ?? '',
+              'title': lesson['title'] as String? ?? 'Без названия',
+              'link': lesson['link'] as String? ?? '', // Add link to lessonData
+            };
+            (courses[courseId]!['lessons'] as List).add(lessonData);
+          }
+
+          for (var course in courses.values) {
+            final courseLessons = course['lessons'] as List<dynamic>;
+            final courseData =
+                data.firstWhere(
+                      (l) => l['course']?['_id'] == course['id'],
+                      orElse: () => {},
+                    )['course']
+                    as Map<String, dynamic>?;
+
+            if (courseData != null && courseData['lessons'] is List) {
+              final orderedUrls = courseData['lessons'] as List<dynamic>;
+              course['lessons'] =
+                  orderedUrls.map((url) {
+                    return courseLessons.firstWhere(
+                      (lesson) => lesson['link'] == url,
+                      orElse: () => {'title': 'Неизвестный урок', 'link': url},
+                    );
+                  }).toList();
+            }
+          }
+
+          return courses.values.toList();
+        }
+        print('Ошибка: Неверный формат данных');
+        return null;
+      } else {
+        print('Ошибка при получении уроков: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Ошибка: $e');
+      return null;
     }
   }
 
@@ -216,9 +306,7 @@ class _DetailPageState extends State<DetailPage>
                                   color: Colors.deepPurple.shade900,
                                 ),
                               ),
-                              const SizedBox(height: 10),
-
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 20),
                               Text(
                                 'Курсы',
                                 style: GoogleFonts.poppins(
@@ -262,12 +350,25 @@ class _DetailPageState extends State<DetailPage>
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           subtitle: Text(
-                                            'Продолжительность: ${course['durability'] ?? 'Неизвестно'}',
+                                            'Мерзімі: ${course['durability'] ?? 'Неизвестно'}',
                                             style: GoogleFonts.poppins(
                                               fontSize: 14,
                                               color: Colors.grey.shade600,
                                             ),
                                           ),
+                                          onExpansionChanged: (expanded) {
+                                            if (!expanded) {
+                                              for (var item
+                                                  in videoControllers) {
+                                                if (item['courseId'] ==
+                                                    course['id']) {
+                                                  (item['controller']
+                                                          as YoutubePlayerController)
+                                                      .pause();
+                                                }
+                                              }
+                                            }
+                                          },
                                           children: [
                                             Padding(
                                               padding:
@@ -291,7 +392,7 @@ class _DetailPageState extends State<DetailPage>
                                                   ),
                                                   const SizedBox(height: 10),
                                                   Text(
-                                                    'Уроки (${lessons.length})',
+                                                    'Сабақтар (${lessons.length})',
                                                     style: GoogleFonts.poppins(
                                                       fontSize: 16,
                                                       fontWeight:
@@ -320,86 +421,115 @@ class _DetailPageState extends State<DetailPage>
                                                             lessons.map((
                                                               lesson,
                                                             ) {
-                                                              return GestureDetector(
-                                                                onTap: () {
-                                                                  final link =
-                                                                      lesson['link']
-                                                                          as String?;
-                                                                  if (link !=
-                                                                      null) {
-                                                                    _launchUrl(
-                                                                      link,
-                                                                    );
-                                                                  }
-                                                                },
-                                                                child: Container(
+                                                              final lessonId =
+                                                                  lesson['id']
+                                                                      as String? ??
+                                                                  '';
+                                                              final controllerItem =
+                                                                  videoControllers.firstWhere(
+                                                                    (item) =>
+                                                                        item['lessonId'] ==
+                                                                        lessonId,
+                                                                    orElse:
+                                                                        () =>
+                                                                            {},
+                                                                  );
+                                                              final controller =
+                                                                  controllerItem['controller']
+                                                                      as YoutubePlayerController?;
+                                                              if (controller ==
+                                                                  null) {
+                                                                return Container(
                                                                   margin:
                                                                       const EdgeInsets.only(
                                                                         bottom:
-                                                                            8,
+                                                                            12,
                                                                       ),
-                                                                  padding:
-                                                                      const EdgeInsets.all(
-                                                                        10,
+                                                                  child: Text(
+                                                                    'Видео недоступно: ${lesson['title']}',
+                                                                    style: GoogleFonts.poppins(
+                                                                      fontSize:
+                                                                          14,
+                                                                      color:
+                                                                          Colors
+                                                                              .red,
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              }
+                                                              return Container(
+                                                                margin:
+                                                                    const EdgeInsets.only(
+                                                                      bottom:
+                                                                          12,
+                                                                    ),
+                                                                child: Column(
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .start,
+                                                                  children: [
+                                                                    Text(
+                                                                      lesson['title']
+                                                                              as String? ??
+                                                                          'Без названия',
+                                                                      style: GoogleFonts.poppins(
+                                                                        fontSize:
+                                                                            14,
+                                                                        fontWeight:
+                                                                            FontWeight.w500,
+                                                                        color:
+                                                                            Colors.grey.shade800,
                                                                       ),
-                                                                  decoration: BoxDecoration(
-                                                                    color:
-                                                                        Colors
-                                                                            .white,
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                          8,
-                                                                        ),
-                                                                    boxShadow: [
-                                                                      BoxShadow(
-                                                                        color: Colors
-                                                                            .black
-                                                                            .withOpacity(
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      maxLines:
+                                                                          2,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      height: 8,
+                                                                    ),
+                                                                    Container(
+                                                                      decoration: BoxDecoration(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                              8,
+                                                                            ),
+                                                                        boxShadow: [
+                                                                          BoxShadow(
+                                                                            color: Colors.black.withOpacity(
                                                                               0.1,
                                                                             ),
-                                                                        blurRadius:
-                                                                            4,
-                                                                        offset:
-                                                                            const Offset(
+                                                                            blurRadius:
+                                                                                4,
+                                                                            offset: const Offset(
                                                                               0,
                                                                               2,
                                                                             ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                  child: Row(
-                                                                    children: [
-                                                                      Icon(
-                                                                        Icons
-                                                                            .play_circle_outline,
-                                                                        color:
-                                                                            Colors.deepPurple.shade300,
-                                                                        size:
-                                                                            20,
-                                                                      ),
-                                                                      const SizedBox(
-                                                                        width:
-                                                                            10,
-                                                                      ),
-                                                                      Expanded(
-                                                                        child: Text(
-                                                                          lesson['content']
-                                                                                  as String? ??
-                                                                              'Без названия',
-                                                                          style: GoogleFonts.poppins(
-                                                                            fontSize:
-                                                                                14,
-                                                                            color:
-                                                                                Colors.grey.shade800,
                                                                           ),
-                                                                          overflow:
-                                                                              TextOverflow.ellipsis,
-                                                                          maxLines:
-                                                                              2,
+                                                                        ],
+                                                                      ),
+                                                                      child: AspectRatio(
+                                                                        aspectRatio:
+                                                                            16 /
+                                                                            9,
+                                                                        child: YoutubePlayer(
+                                                                          controller:
+                                                                              controller,
+                                                                          showVideoProgressIndicator:
+                                                                              true,
+                                                                          progressIndicatorColor:
+                                                                              Colors.deepPurple,
+                                                                          progressColors: const ProgressBarColors(
+                                                                            playedColor:
+                                                                                Colors.deepPurple,
+                                                                            handleColor:
+                                                                                Colors.deepPurpleAccent,
+                                                                          ),
                                                                         ),
                                                                       ),
-                                                                    ],
-                                                                  ),
+                                                                    ),
+                                                                  ],
                                                                 ),
                                                               );
                                                             }).toList(),
