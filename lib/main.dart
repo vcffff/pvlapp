@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hackatonparvlodar/roadmap/presentation/roadmap.dart';
 import 'package:hackatonparvlodar/services/firstpage.dart';
 import 'package:hackatonparvlodar/services/secondpage.dart';
 
@@ -17,10 +18,12 @@ class MyApp extends StatelessWidget {
       title: 'News Checker',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        textTheme: GoogleFonts.poppinsTextTheme(),
+        textTheme: GoogleFonts.montserratAlternatesTextTheme(
+          Typography.blackCupertino,
+        ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: Scaffold(body: MyWidget()),
+      home: Scaffold(body: RoadMap(profession: 'Planter')),
     );
   }
 }
