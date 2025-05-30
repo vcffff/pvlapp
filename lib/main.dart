@@ -4,6 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:hackatonparvlodar/firstpage/firstpage.dart';
 import 'package:hackatonparvlodar/services/auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hackatonparvlodar/roadmap/presentation/roadmap.dart';
+import 'package:hackatonparvlodar/services/firstpage.dart';
+import 'package:hackatonparvlodar/services/secondpage.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -20,16 +24,12 @@ class MyApp extends StatelessWidget {
       title: 'Login App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        textTheme: GoogleFonts.poppinsTextTheme(),
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.white.withOpacity(0.1),
+        textTheme: GoogleFonts.montserratAlternatesTextTheme(
+          Typography.blackCupertino,
         ),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      home: Scaffold(body: RoadMap(profession: 'Planter')),
     );
   }
 }
