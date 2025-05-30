@@ -1,7 +1,10 @@
 import 'dart:ui' as book;
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hackatonparvlodar/services/auth.dart';
+import 'package:hackatonparvlodar/services/courseservice.dart';
 import 'package:shimmer/shimmer.dart';
 
 class Learningd extends StatefulWidget {
@@ -12,56 +15,100 @@ class Learningd extends StatefulWidget {
 }
 
 class _LearningdState extends State<Learningd> {
+  List<String>? profes; // айди курсов
+  List<String?>? titles; // названия курсов
   int? _selectedIndex;
 
   @override
+  void initState() {
+    super.initState();
+    loadprofes();
+  }
+
+  Future<void> loadprofes() async {
+    final data = await fetchProfessions("Jane", "1234");
+    setState(() {
+      profes = data;
+    });
+    await loadTitles();
+  }
+
+  Future<void> loadTitles() async {
+    final futures = profes!.map((id) => getCourseTitleById("Jane", id));
+    final loadedTitles = await Future.wait(futures);
+    setState(() {
+      titles = loadedTitles;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            margin: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.white, book.Color.fromARGB(255, 57, 106, 205)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  spreadRadius: 2,
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
+    if (profes == null || titles == null) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white,
+                    book.Color.fromARGB(255, 57, 106, 205),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              ],
-              border: Border.all(color: Colors.grey.shade200, width: 1),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Column(
-                children: [
-                  _buildProfessionRow(
-                    context,
-                    index: 0,
-                    title: "Профессия 1",
-                    progress: 0 / 48,
-                    lessons: "0/48",
-                  ),
-                  _buildProfessionRow(
-                    context,
-                    index: 1,
-                    title: "Профессия 2",
-                    progress: 0 / 48,
-                    lessons: "0/48",
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    spreadRadius: 2,
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
                 ],
+                border: Border.all(color: Colors.grey.shade200, width: 1),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Column(
+                  children: [
+                    _buildProfessionRow(
+                      context,
+                      index: 0,
+                      title: titles![0] ?? "no data",
+                      progress: 0 / 32,
+                      lessons: "0/48",
+                    ),
+                    _buildProfessionRow(
+                      context,
+                      index: 1,
+                      title:
+                          titles!.length > 1
+                              ? titles![1]!.substring(0, 24)
+                              : "no data",
+                      progress: 0 / 21,
+                      lessons: "0/32",
+                    ),
+                    _buildProfessionRow(
+                      context,
+                      index: 2,
+                      title: titles![2]!,
+                      progress: 0 / 36,
+                      lessons: "0/21",
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 

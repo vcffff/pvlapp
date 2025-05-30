@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DetailPage extends StatefulWidget {
   final String profession;
   final String imageUrl;
+  final List<Map<String, dynamic>> courses;
 
   const DetailPage({
     super.key,
     required this.profession,
     required this.imageUrl,
+    required this.courses,
   });
 
   @override
@@ -47,49 +50,20 @@ class _DetailPageState extends State<DetailPage>
     super.dispose();
   }
 
+  Future<void> _launchUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Не удалось открыть ссылку: $url'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Map<String, Map<String, dynamic>> professionDetails = {
-      'Гүл егуші': {
-        'description':
-            'Гүл егуші – гүлдер мен өсімдіктерді өсіру, күту және дизайн жасау бойынша маман. Олар бақшаларды, гүлзарларды және интерьерлерді әдемі ету үшін жұмыс істейді.',
-        'skills': [
-          'Өсімдіктерді күту',
-          'Ландшафт дизайны',
-          'Гүл композициялары',
-        ],
-        'progress': 0.2,
-        'lessons': '10/50',
-        'color': Colors.green.shade300,
-      },
-      'Инжинер': {
-        'description':
-            'Инжинер – техникалық мәселелерді шешу, жобалау және инновациялық шешімдер әзірлеумен айналысатын маман. Олар құрылыстан бастап технологияға дейін әртүрлі салаларда жұмыс істейді.',
-        'skills': ['Жобалау', 'Техникалық талдау', 'Командалық жұмыс'],
-        'progress': 0.3,
-        'lessons': '15/50',
-        'color': Colors.blue.shade300,
-      },
-      'Програмист': {
-        'description':
-            'Програмист – бағдарламалық жасақтама, веб-сайттар мен қосымшалар әзірлейтін маман. Олар код жазу және мәселелерді шешу арқылы технологиялық шешімдер жасайды.',
-        'skills': ['Код жазу', 'Алгоритмдер', 'Деректер базасымен жұмыс'],
-        'progress': 0.5,
-        'lessons': '25/50',
-        'color': Colors.deepPurple.shade300,
-      },
-    };
-
-    final details =
-        professionDetails[widget.profession] ??
-        {
-          'description': 'Мамандық туралы ақпарат қолжетімді емес.',
-          'skills': [],
-          'progress': 0.0,
-          'lessons': '0/0',
-          'color': Colors.grey.shade300,
-        };
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -119,13 +93,6 @@ class _DetailPageState extends State<DetailPage>
             fontSize: 22,
             fontWeight: FontWeight.w600,
             color: Colors.white,
-            shadows: [
-              Shadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
         ),
       ),
@@ -158,7 +125,7 @@ class _DetailPageState extends State<DetailPage>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        (details['color'] as Color).withOpacity(0.7),
+                        Colors.deepPurple.shade300.withOpacity(0.7),
                         Colors.white.withOpacity(0.5),
                       ],
                       begin: Alignment.topCenter,
@@ -214,7 +181,6 @@ class _DetailPageState extends State<DetailPage>
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: FadeTransition(
@@ -232,7 +198,7 @@ class _DetailPageState extends State<DetailPage>
                             gradient: LinearGradient(
                               colors: [
                                 Colors.white,
-                                (details['color'] as Color).withOpacity(0.1),
+                                Colors.deepPurple.shade100.withOpacity(0.1),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -250,118 +216,202 @@ class _DetailPageState extends State<DetailPage>
                                   color: Colors.deepPurple.shade900,
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                details['description'],
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  color: Colors.grey.shade800,
-                                  height: 1.5,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Прогресс',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.deepPurple.shade900,
-                                    ),
-                                  ),
-                                  Text(
-                                    details['lessons'],
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
-                              ),
                               const SizedBox(height: 10),
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 1000),
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(4),
-                                  color: Colors.grey.shade200,
-                                ),
-                                child: FractionallySizedBox(
-                                  alignment: Alignment.centerLeft,
-                                  widthFactor: details['progress'],
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(4),
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          (details['color'] as Color),
-                                          (details['color'] as Color)
-                                              .withOpacity(0.7),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 20),
+
+                              const SizedBox(height: 10),
                               Text(
-                                'Дағдылар',
+                                'Курсы',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 18,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.deepPurple.shade900,
                                 ),
                               ),
                               const SizedBox(height: 10),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children:
-                                    (details['skills'] as List<String>).map((
-                                      skill,
-                                    ) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Дағды: $skill',
-                                                style: GoogleFonts.poppins(),
-                                              ),
-                                              backgroundColor: details['color'],
-                                            ),
-                                          );
-                                        },
-                                        child: Chip(
-                                          label: Text(
-                                            skill,
+                              widget.courses.isEmpty
+                                  ? Text(
+                                    'Курсы недоступны',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  )
+                                  : ListView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: widget.courses.length,
+                                    itemBuilder: (context, index) {
+                                      final course = widget.courses[index];
+                                      final lessons =
+                                          course['lessons'] as List<dynamic>? ??
+                                          [];
+                                      return Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 15,
+                                        ),
+                                        child: ExpansionTile(
+                                          title: Text(
+                                            course['title'] as String? ??
+                                                'Без названия',
                                             style: GoogleFonts.poppins(
-                                              fontSize: 14,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
                                               color: Colors.deepPurple.shade700,
                                             ),
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          backgroundColor: Colors.white,
-                                          elevation: 4,
-                                          shadowColor: Colors.black.withOpacity(
-                                            0.1,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            side: BorderSide(
-                                              color: Colors.grey.shade300,
+                                          subtitle: Text(
+                                            'Продолжительность: ${course['durability'] ?? 'Неизвестно'}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade600,
                                             ),
                                           ),
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16.0,
+                                                    vertical: 8.0,
+                                                  ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    course['description']
+                                                            as String? ??
+                                                        'Описание недоступно',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 14,
+                                                      color:
+                                                          Colors.grey.shade800,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  Text(
+                                                    'Уроки (${lessons.length})',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color:
+                                                          Colors
+                                                              .deepPurple
+                                                              .shade700,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 5),
+                                                  lessons.isEmpty
+                                                      ? Text(
+                                                        'Уроки недоступны',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                              fontSize: 14,
+                                                              color:
+                                                                  Colors
+                                                                      .grey
+                                                                      .shade600,
+                                                            ),
+                                                      )
+                                                      : Column(
+                                                        children:
+                                                            lessons.map((
+                                                              lesson,
+                                                            ) {
+                                                              return GestureDetector(
+                                                                onTap: () {
+                                                                  final link =
+                                                                      lesson['link']
+                                                                          as String?;
+                                                                  if (link !=
+                                                                      null) {
+                                                                    _launchUrl(
+                                                                      link,
+                                                                    );
+                                                                  }
+                                                                },
+                                                                child: Container(
+                                                                  margin:
+                                                                      const EdgeInsets.only(
+                                                                        bottom:
+                                                                            8,
+                                                                      ),
+                                                                  padding:
+                                                                      const EdgeInsets.all(
+                                                                        10,
+                                                                      ),
+                                                                  decoration: BoxDecoration(
+                                                                    color:
+                                                                        Colors
+                                                                            .white,
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                          8,
+                                                                        ),
+                                                                    boxShadow: [
+                                                                      BoxShadow(
+                                                                        color: Colors
+                                                                            .black
+                                                                            .withOpacity(
+                                                                              0.1,
+                                                                            ),
+                                                                        blurRadius:
+                                                                            4,
+                                                                        offset:
+                                                                            const Offset(
+                                                                              0,
+                                                                              2,
+                                                                            ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Icon(
+                                                                        Icons
+                                                                            .play_circle_outline,
+                                                                        color:
+                                                                            Colors.deepPurple.shade300,
+                                                                        size:
+                                                                            20,
+                                                                      ),
+                                                                      const SizedBox(
+                                                                        width:
+                                                                            10,
+                                                                      ),
+                                                                      Expanded(
+                                                                        child: Text(
+                                                                          lesson['content']
+                                                                                  as String? ??
+                                                                              'Без названия',
+                                                                          style: GoogleFonts.poppins(
+                                                                            fontSize:
+                                                                                14,
+                                                                            color:
+                                                                                Colors.grey.shade800,
+                                                                          ),
+                                                                          overflow:
+                                                                              TextOverflow.ellipsis,
+                                                                          maxLines:
+                                                                              2,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            }).toList(),
+                                                      ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       );
-                                    }).toList(),
-                              ),
+                                    },
+                                  ),
                               const SizedBox(height: 20),
                               Center(
                                 child: ElevatedButton(
@@ -372,12 +422,13 @@ class _DetailPageState extends State<DetailPage>
                                           'Оқуды бастау: ${widget.profession}',
                                           style: GoogleFonts.poppins(),
                                         ),
-                                        backgroundColor: details['color'],
+                                        backgroundColor:
+                                            Colors.deepPurple.shade300,
                                       ),
                                     );
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: details['color'],
+                                    backgroundColor: Colors.deepPurple.shade300,
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 32,
