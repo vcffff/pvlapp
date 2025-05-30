@@ -5,9 +5,6 @@ import 'package:hackatonparvlodar/firstpage/firstpage.dart';
 import 'package:hackatonparvlodar/services/auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hackatonparvlodar/roadmap/presentation/roadmap.dart';
-import 'package:hackatonparvlodar/services/firstpage.dart';
-import 'package:hackatonparvlodar/services/secondpage.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -29,7 +26,6 @@ class MyApp extends StatelessWidget {
         ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: Scaffold(body: RoadMap(profession: 'Planter')),
     );
   }
 }
@@ -51,7 +47,6 @@ class _LoginPageState extends State<LoginPage>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-
   @override
   void initState() {
     super.initState();
